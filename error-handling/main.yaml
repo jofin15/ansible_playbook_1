@@ -1,0 +1,138 @@
+---
+- hosts: all
+  become: true
+  gather_facts: false  # Optional: You can change this to 'true' if you need facts later
+
+  tasks:
+    - name: Ensure openssh-server and openssl are up to date
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: latest
+        update_cache: yes  # Ensure the package cache is updated
+      loop:
+        - openssh-server  # Correct package for SSH
+        - openssl
+        
+    - name: Check if Docker is installed
+      ansible.builtin.command: "docker --version"
+      register: docker_version
+      ignore_errors: true
+
+    - name: Print Docker version if installed
+      ansible.builtin.debug:
+        msg: "Docker is installed: {{ docker_version.stdout }}"
+      when: docker_version.rc == 0
+
+    - name: Print message if Docker is not installed
+      ansible.builtin.debug:
+        msg: "Docker is not installed."
+      when: docker_version.rc != 0
+
+    - name: Install Docker
+      ansible.builtin.apt:
+        name: docker.io
+        state: present
+      when: docker_version.rc != 0
+
+# ---
+# - hosts: all
+#   become: true
+#   tasks:
+#     - name: Update the apt package index
+#       ansible.builtin.apt:
+#         update_cache: yes
+
+#     - name: Install packages to allow apt to use a repository over HTTPS
+#       ansible.builtin.apt:
+#         name: 
+#           - apt-transport-https
+#           - ca-certificates
+#           - curl
+#           - software-properties-common
+#         state: present
+
+#     - name: Add Docker’s official GPG key
+#       ansible.builtin.apt_key:
+#         url: https://download.docker.com/linux/ubuntu/gpg
+#         state: present
+
+#     - name: Set up the Docker stable repository
+#       ansible.builtin.apt_repository:
+#         repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+#         state: present
+
+#     - name: Update the apt package index again after adding Docker repo
+#       ansible.builtin.apt:
+#         update_cache: yes
+
+#     - name: Install Docker Engine
+#       ansible.builtin.apt:
+#         name: docker-ce
+#         state: latest
+
+#     - name: Install Docker Compose
+#       ansible.builtin.apt:
+#         name: docker-compose
+#         state: latest
+
+#     - name: Ensure Docker service is running
+#       ansible.builtin.service:
+#         name: docker
+#         state: started
+#         enabled: yes
+
+
+# ---
+# - hosts: all
+#   become: true
+#   tasks:
+#     - name: Update the apt package index
+#       ansible.builtin.apt:
+#         update_cache: yes
+
+#     - name: Install necessary packages
+#       ansible.builtin.apt:
+#         name:
+#           - apt-transport-https
+#           - ca-certificates
+#           - curl
+#           - software-properties-common
+#           - python3-pip  # Install pip for Python dependencies
+#         state: present
+
+#     - name: Install Python 'requests' package for HTTPS handling
+#       ansible.builtin.pip:
+#         name: requests
+#         state: present
+
+#     - name: Manually add Docker’s official GPG key
+#       ansible.builtin.shell: "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -"
+#       args:
+#         warn: false
+#       register: result
+#       failed_when: "'OK' not in result.stdout"
+
+#     - name: Set up the Docker stable repository
+#       ansible.builtin.apt_repository:
+#         repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+#         state: present
+
+#     - name: Update the apt package index after adding Docker repo
+#       ansible.builtin.apt:
+#         update_cache: yes
+
+#     - name: Install Docker Engine
+#       ansible.builtin.apt:
+#         name: docker-ce
+#         state: latest
+
+#     - name: Install Docker Compose
+#       ansible.builtin.apt:
+#         name: docker-compose
+#         state: latest
+
+#     - name: Ensure Docker service is running
+#       ansible.builtin.service:
+#         name: docker
+#         state: started
+#         enabled: yes

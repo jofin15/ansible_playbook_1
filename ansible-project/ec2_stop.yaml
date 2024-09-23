@@ -1,0 +1,33 @@
+---
+- hosts: all
+  become: true
+
+  tasks:
+    - name: Print all the ansible gathered ansible_facts
+      ansible.builtin.debug:
+        var: ansible_facts
+
+    - name: Shutdown ubuntu instances only
+      ansible.builtin.command: /sbin/shutdown -t now
+      when:
+        ansible_facts['os_family'] == "Debian"
+
+
+# ---
+# - hosts: all
+#   become: true
+
+#   tasks:
+#     # - name: Print all the ansible gathered ansible_facts
+#     #   ansible.builtin.debug:
+#     #     var: ansible_facts
+
+#     - name: Terminate EC2 instances only if OS family is Debian
+#       amazon.aws.ec2_instance:
+#         region: "ap-south-1"  # Change to your AWS region
+#         state: absent
+#         instance_ids: "{{ ansible_ec2_instance_ids }}"  # This should be a list of instance IDs to terminate
+#         aws_access_key: "{{ ec2_access_key }}"
+#         aws_secret_key: "{{ ec2_secret_key }}"
+#       when:
+#         ansible_facts['os_family'] == "Debian"
